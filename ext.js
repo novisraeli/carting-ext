@@ -1,3 +1,4 @@
+
 class Product {
   constructor(name, element) {
     this.name = name;
@@ -29,11 +30,15 @@ for(var i=0; i<raw_prods.length;i++) {
 	}
 }
 	
-
-
-	console.log("Number of ppoducts", products.length)
+console.log("Number of products", products.length)
 
 for(var i=0; i<products.length;i++)
 {
-	products[0].element.innerHTML += '<div><div style="width:20px; height:20px; background:green;">20 ש"ח</div><div style="width:20px; height:20px; background:blue;">?</div></div>';
+	var s = '<div class="carting-product-wrapper">';
+	s += '<div class="carting-product-wrapper">';
+	s += '<div class="price-comparator">20 ש"ח</div>';
+	s += '<div class="help">?</div>';
+	s += '</div>';
+
+	products[i].element.innerHTML += s;
 }

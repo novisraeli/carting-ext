@@ -1,0 +1,25 @@
+.carting-product-wrapper {
+	margin:5px;
+	color:#fff;
+	text-align: center;
+	font-weight: bold;
+}
+
+.carting-product-wrapper .price-comparator {
+	width:60px;
+	padding:3px;
+	background:#15ed4f;
+	border-radius: 7px;
+	display: inline-block;
+	margin-right:10px;
+
+}
+
+ .carting-product-wrapper .help {
+	width:20px;
+		padding:5px;
+	background:#0a1378;
+	display: inline-block;
+	border-radius: 7px;
+
+}
