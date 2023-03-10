@@ -1,0 +1,1 @@
+document.getElementsByClassName("miglog-prod-body")[0].innerHTML += '<div><div style="width:20px; height:20px; background:green;">20 ש"ח</div><div style="width:20px; height:20px; background:blue;">?</div></div>';

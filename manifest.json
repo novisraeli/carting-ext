@@ -1,0 +1,11 @@
+{
+  "name": "My Extension",
+  "version": "1.0",
+  "manifest_version": 2,
+  "description": "This extension modifies the user's DOM",
+  "content_scripts": [{
+    "matches": ["https://www.shufersal.co.il/*"],
+    "js": ["ext.js"],
+    "run_at": "document_idle"
+  }]
+}
