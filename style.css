@@ -1,25 +1,92 @@
 .carting-product-wrapper {
-	margin:5px;
 	color:#fff;
-	text-align: center;
 	font-weight: bold;
+	margin:0 5px;
+	background-color: #f0f0f0;
+	border-bottom: 1px solid #84a4db;
+	padding: 4px;
+	font-size:14px;
+	text-align: right;
 }
+.carting-product {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.carting-product div{
+	display: inline-block;
+	text-align: center;
+	justify-content: center;
+	padding: 2px 4px;
+}
+.carting-product .price-comparator {
 
-.carting-product-wrapper .price-comparator {
-	width:60px;
-	padding:3px;
 	background:#15ed4f;
 	border-radius: 7px;
-	display: inline-block;
-	margin-right:10px;
 
 }
 
- .carting-product-wrapper .help {
-	width:20px;
-		padding:5px;
-	background:#0a1378;
-	display: inline-block;
-	border-radius: 7px;
+.carting-product .help {
+	border-radius: 15px;
+	cursor: pointer;
+	background-color:#0a1378;
+	text-align: center;
+	justify-content: center;
+	padding:5px;
+	font-size:13px;
 
+}
+.carting-product .selected-help {
+	background-color:#4f79d1;
+}
+.carting-product .replcement-name {
+	color:#0a1378;
+}
+.carting-product .price-change {
+	color:#2ad457;
+	padding:3px;
+}
+
+.suggestion-container-wrapper {
+	position: absolute;
+	z-index: 999999999999;
+	display: none;
+}
+
+.suggestion-container-wrapper .suggestion-container {
+	background-color: #0a1378;
+	height: 80px;
+	width: 230px;
+	padding: 7px;
+	display: flex;
+	flex-flow: space-between;
+	justify-content: center;
+	text-align: center;
+	position: relative;
+	left:12px;
+
+}
+.suggestion-container-wrapper .arrow {
+	width:12px;
+	border-left: 12px solid transparent;
+	border-right: 12px solid transparent;
+	border-bottom: 12px solid #0a1378;
+	position: relative;
+	right:3px;
+}
+
+.suggestion-container-wrapper .suggestion-container div {
+	flex:1;
+	padding:4px;
+	margin:0 4px;
+	background-color: #c2c2c2;
+
+}
+.suggestion-container-wrapper .suggestion-container div:hover {
+	background-color: #fff;
+}
+
+.suggestion-container div img {
+	max-height: 100%;
+	cursor: pointer;
 }
