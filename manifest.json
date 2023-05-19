@@ -2,17 +2,21 @@
   "name": "My Extension",
   "version": "1.0",
   "manifest_version": 3,
+  "host_permissions": [
+      "http://www.localhost:8080/*"
+  ],
   "description": "This extension modifies the user's DOM",
     "content_scripts": [{
       "css": ["style.css"],
       "matches": ["https://www.shufersal.co.il/*"],
       "js": ["jquery.min.js", "ext.js"],
       "run_at": "document_idle"
-    }],
-    "web_accessible_resources": [
+    }
+  ],
+  "web_accessible_resources": [
     {
-      "resources": ["kinder.png"],
-      "matches": ["<all_urls>"]
+      "resources": ["ramilevy.jpg", "help.jpg"],
+      "matches": ["https://www.shufersal.co.il/*"]
     }
   ]
 }

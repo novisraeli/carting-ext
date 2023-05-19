@@ -39,33 +39,60 @@
 .carting-product .selected-help {
 	background-color:#4f79d1;
 }
-.carting-product .replcement-name {
+.replcement-name {
 	color:#0a1378;
 }
-.carting-product .price-change {
+.price-change {
 	color:#2ad457;
 	padding:3px;
 }
 
-.suggestion-container-wrapper {
-	position: absolute;
-	z-index: 999999999999;
+.hidden {
 	display: none;
 }
 
-.suggestion-container-wrapper .suggestion-container {
-	background-color: #0a1378;
-	height: 80px;
-	width: 230px;
-	padding: 7px;
+
+.carting-product-suggestion-wrapper {
+	display:none;
+}
+
+
+.carting-product-suggestion {
+	font-weight: bold;
+	margin:0 5px;
+	background-color: #fafafa;
+	border-bottom: 1px solid #d2d2d2;
+	padding: 4px;
+	font-size:14px;
+	text-align: right;
+	cursor: pointer;
+	opacity: 0.7;
+	transition: opacity 0.3s;
 	display: flex;
-	flex-flow: space-between;
-	justify-content: center;
-	text-align: center;
-	position: relative;
-	left:12px;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.carting-product-suggestion:hover {
+	background-color: #fefefe;
+	opacity: 1;
 
 }
+
+.carting-product-suggestion div{
+	display: inline-block;
+	text-align: center;
+	justify-content: center;
+	padding: 2px 4px;
+}
+.price-comparator {
+	padding:1px 3px;
+	background:#15ed4f;
+	border-radius: 7px;
+	color: #fff;
+	display: inline-block;
+}
+
+
 .suggestion-container-wrapper .arrow {
 	width:12px;
 	border-left: 12px solid transparent;
@@ -89,4 +116,32 @@
 .suggestion-container div img {
 	max-height: 100%;
 	cursor: pointer;
+}
+
+
+.total-cart {
+	font-size: 14px;
+}
+#total-price-change {
+	margin:0 5px;
+}
+.help-button {
+	position: absolute;
+	top:14px;
+	right:14px;
+	z-index: 9999999999999;
+}
+.help-modal-content {
+	display: flex;
+	justify-content: space-between;
+
+}
+.help-modal-content {
+	font-size: 34px;
+	justify-content: center;
+
+}
+.help-modal-content img {
+	float:left;
+	height:80%;
 }
