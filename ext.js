@@ -11,8 +11,55 @@ link.setAttribute("crossorigin", "anonymous");
 // Add the link element to the head section of the page
 document.head.appendChild(link);
 
+var loading = false;
 var all_products_html = '';
 var cart_products = Array();
+async function getProductByid(product_id) {
+
+  const url = `http://localhost:8080/product/serial?chain_id=2&product_id=` + product_id;
+  const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    console.log("API get_by_id returned for product ", product_id, " data: ", JSON.stringify(data))
+    return data;
+  } catch (error) {
+    // Handle any errors that occur during the request
+    console.error('Error API:', error);
+    console.log('Error occurred while fetching data. Please check the console for more details.');
+  }
+}
+async function getProductsByName(product_name) {
+
+  const url = `http://localhost:8080/product/name?chain_id=2&name=` + product_name;
+  const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    // Handle the results (e.g., alert the data)
+    console.log("API get_by_name returned for product ", product_name, " data: ", JSON.stringify(data))
+    return data;
+  } catch (error) {
+    // Handle any errors that occur during the request
+    console.error('Error API:', error);
+    console.log('Error occurred while fetching data. Please check the console for more details.');
+  }
+}
 
 
 function pMul2f(x, y) {
@@ -33,8 +80,9 @@ class Product {
   }
 }
 
-class CartProduct extends Product{
+class CartProduct extends Product {
   constructor(id, name, total_price, amount, element, index) {
+    console.log("Update Cart product ", name)
     super(id, name, total_price/amount);
     this.element = element;
     this.amount = amount;
@@ -42,73 +90,42 @@ class CartProduct extends Product{
     this.replacements = Array(new ReplacmentProduct(-1,'-',-1,-1,this),new ReplacmentProduct(-1,'-',-1,-1,this),new ReplacmentProduct(-1,'-',-1,-1,this));
     this.chosen = null;
     this.index = index;
-    this.load_replacements();
   }
 
-  load_replacements() {
-    let jsonData;
-    var t = this;
-    var promise_by_id = this.get_replacment_by_id();
-    //var promise_by_id = new ReplacmentProduct(0, this.name, 10, this.amount, this);
-    //var promise_by_name = this.get_replacments_by_name();
-    promise_by_id.then((result) => {
-      console.log("promise_by_id res", result);
-      promise_by_id.then((result) => {
-        console.log("promise_by_name res", result);
-        let replacements = Array(new ReplacmentProduct(0, t.name, result["item_price"], t.amount, t), new ReplacmentProduct(0, t.name, 10, t.amount, t), new ReplacmentProduct(0, t.name, 10, t.amount, t), new ReplacmentProduct(0, t.name, 10, t.amount, t));
-        //let replacements = Object.entries(dictionary).map(([name, price]) => {
-        //  return new Product(name, price);
-        //});
-        t.replacements = replacements.slice(0,3);
-        updateReplacementsDOMOfProduct(t);
-      }).catch((error) => {
-        // Promise rejected
-        console.error(error);
-      });
-    }).catch((error) => {
-      // Promise rejected
-      console.error(error);
+
+  async load_replacements() {
+    return new Promise(resolve => {
+      Promise.all([this, getProductByid(this.id), getProductsByName(this.name)])
+      .then(([prod, result_by_id, results_by_name]) => {
+          console.log("Detected for ", prod.name, " items: ", results_by_name);
+          var repl_by_id = new ReplacmentProduct(0, result_by_id["product_name"], result_by_id["item_price"], prod.amount, prod);
+
+          let replacements = [];
+          results_by_name.forEach((d) => {
+            replacements.push(new ReplacmentProduct(0, d["item_name"], d["item_price"], prod.amount, prod));
+          });
+
+          // Check if an object with the same id exists in the array
+          const hasObjectWithSameId = replacements.some(obj => obj.id === repl_by_id.id);
+
+          // If an object with the same id does not exist, add the new object
+          if (!hasObjectWithSameId) {
+            array.unshift(repl_by_id);
+          }
+
+
+          console.log("Detection for ", prod.name , " Replacements = ", replacements);
+          prod.replacements = replacements.slice(0,3);
+
+          updateReplacementsDOMOfProduct(prod);
+          changeProductReplacementChosen(prod.index, 1, false);
+          resolve();
+        }).catch(error => {
+         // Handle any errors that occurred during the promises
+          console.error('Error:', error);
+        });
     });
-
-    //var replcements = Array(repl_by_id, repl_by_id, repl_by_id)
-
-    console.log("product ", this.name, " - replacements", this.replacements);//.map(obj => obj.name)
   }
-
-
-  get_replacment_by_id() {
-    var t = this;
-    return fetch('http://localhost:8080/product/serial?chain_id=2&product_id=' + this.id, {method: 'OPTIONS',mode: 'cors',headers: {'Content-Type': 'application/json'}})
-      .then(response => response.json())
-      .then(data => {
-        return data;
-        //t.replacements.unshift(new ReplacmentProduct(0, t.name, data["item_price"], t.amount, t));
-        //console.log("IMgoing to updateReplacementsDOMOfProduct", t.replacements);
-        //updateReplacementsDOMOfProduct(t);
-      })
-      .catch(error => {
-        // Handle any errors that occur during the request
-        console.error('Error:', error);
-      });
-  }
-
-  get_replacments_by_name() {
-    var t = this;
-     /*fetch('http://localhost:8080/product/name?chain_id=2&name=' + this.name, {method: 'OPTIONS',mode: 'cors',headers: {'Content-Type': 'application/json'}})
-      .then(response => response.json())
-      .then(data => {
-        return data;
-        // Process the parsed JSON data
-        //console.log('pr', 'get_replacments_by_name ->', data);
-        //updateReplacementsDOMOfProduct(t);
-      })
-      .catch(error => {
-        // Handle any errors that occur during the request
-        console.error('Error:', error);
-      });*/
-    return '';
-  }
-
   
 }
 
@@ -123,7 +140,7 @@ class ReplacmentProduct extends Product{
 }
 
 function updateReplacementsDOMOfProduct(prod) {
-    console.log('prIM replacements', prod.replacements);
+    console.log('product: ', prod.name, ' | Replacements: ' , prod.replacements);
        
     replacements = '';
     for(var j = 0; j<prod.replacements.length;j++)
@@ -141,9 +158,7 @@ function updateReplacementsDOMOfProduct(prod) {
       replacements += '<div class="price-comparator" style="background-color:' + price_color + '">' + r.total_price + '₪</div></div>';
       replacements += '</div>';
       }
-    console.log('prIMUpdate replacements calculated');
-    console.log('prIMUpdateXXX', prod.element);
-    console.log('prIMUpdateYYY', prod.element.querySelector('.suggestion-container-wrapper'));
+
     prod.element.querySelector('.suggestion-container-wrapper').innerHTML = replacements;
     for(var j = 0; j < prod.replacements.length; j++)
     {
@@ -239,11 +254,62 @@ function getProdPriceDOM(elem) {
   return parseFloat(p[0]);
 }
 
-function addProductsCart() {
-  //console.log('pr tick');
-  all_products_new_html =$('.miglog-prod-group')[0].innerHTML;
-  if (all_products_html != all_products_new_html)
+function areObjectsEqual(obj1, obj2) {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if the number of keys is the same
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Check if the keys are the same
+  if (!keys1.every(key => keys2.includes(key))) {
+    return false;
+  }
+
+  // Check if the values for each key are the same
+  for (const key of keys1) {
+    const value1 = obj1[key];
+    const value2 = obj2[key];
+
+    // If the value is an object, recursively check its properties
+    if (typeof value1 === 'object' && typeof value2 === 'object') {
+      if (!areObjectsEqual(value1, value2)) {
+        return false;
+      }
+    } else if (value1 !== value2) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+function get_raw_products(element) {
+  raw_prods = $('.miglog-cart-prod-wrp');
+  prods = {};
+  for(var i=0; i<raw_prods.length;i++) {
+    id = $(raw_prods[i]).find('input[name="productCodePost"]')[0].value.substring(2),
+    amount = getProdAmountDOM($(raw_prods[i]));
+    prods[id] = amount;
+  }
+  return prods;
+}
+
+var raw_prods_prev = {};
+async function addProductsCart() {
+
+  var all_products_new_html = $('.miglog-prod-group')[0].innerHTML;
+  var raw_prods_current = get_raw_products(all_products_new_html);
+  
+  if (!areObjectsEqual(raw_prods_prev, raw_prods_current))
   {
+    console.log("Cart Change Detected ", raw_prods_prev, raw_prods_current);
+    raw_prods_prev = raw_prods_current;
+
+    console.log("change in cart detected")
     cart_products = Array();
     raw_prods = $('.miglog-cart-prod-wrp');
     for(var i=0; i<raw_prods.length;i++) {
@@ -258,11 +324,14 @@ function addProductsCart() {
           amount,
           raw_prods[i],
           i);
-
+      
       cart_products[i].chosen = cart_products[i].replacements[0];
     }
     addProductsToDOM();
-    all_products_html = all_products_new_html;
+
+    for (const key in cart_products) {
+      await cart_products[key].load_replacements();
+    }
   }
   setTimeout(addProductsCart, 1000);
 
@@ -279,24 +348,28 @@ function get_price_color(price_change) {
     return price_color;
 }
 
-function changeProductReplacementChosen(prod_index, replacement_index) {
-  console.log("product: ", prod_index, " ", cart_products[prod_index]);
+function changeProductReplacementChosen(prod_index, replacement_index, do_toggle=true) {
+  //console.log("product: ", prod_index, " ", cart_products[prod_index]);
   cart_products[prod_index].chosen = cart_products[prod_index].replacements[replacement_index];
-  setChosenDOM(prod_index);
+  setChosenDOM(prod_index, do_toggle);
   updateTotalPrice();
+  generateTable(cart_products);
 
 }
 
-function setChosenDOM(prod_index) {
+function setChosenDOM(prod_index, do_toggle) {
   var p = cart_products[prod_index];
-  $('#product-' + prod_index + ' .carting-product-suggestion-wrapper').toggle(300);
-  $('#product-' + prod_index + ' .help').toggleClass('selected-help')
+  if (do_toggle) {
+    $('#product-' + prod_index + ' .carting-product-suggestion-wrapper').toggle(300);
+    $('#product-' + prod_index + ' .help').toggleClass('selected-help')
+  }
   var e = document.getElementById("product-" + prod_index);
   chosen = p.chosen;
   price_change = pSub2f(chosen.total_price, p.total_price);
 
   var price_color = get_price_color(price_change);
   price_change_string = price_change;
+
   if (price_change > 0)
     price_change_string = '+' + price_change;
   console.log("chosen replacement is: ", p.chosen);
@@ -312,7 +385,6 @@ function setChosenDOM(prod_index) {
 
 function addListnerWrapper(x, y) {
   var r = $('#suggestion-'+x+'-'+y)[0];
-  console.log("r ", r);
   r.addEventListener('click',function() {changeProductReplacementChosen(x, y);});
 }
 
@@ -334,23 +406,20 @@ function updateTotalPrice() {
   console.log("Updating total price3");
   sum_products = cart_products.reduce((acc, product) => {return acc + product.total_price; }, 0);
   sum_chosen = cart_products.reduce((acc, product) => {return acc + product.chosen.total_price;}, 0);
-  console.log('prChosen', sum_chosen);
-  console.log('prCart', sum_products);
   total_change = pSub2f(sum_chosen, sum_products);
   $('#total-price').text(sum_chosen);
   $('#total-price-change').text(total_change);
 }
 
 function submitClick(e) {
-  e.preventDefault();
-  e.stopPropagation();
+
   alert("Buy detected!");
-  updateTotalPrice();
+
 }
 
 function addHelpModal() {
   im = chrome.runtime.getURL("help.jpg");
-  var help_modal = '<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">';
+  var help_modal = '<div class="modal fade bd-example-modal-lg" id="help-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">';
   help_modal += '<div class="modal-dialog modal-lg" style="width:80%">';
   help_modal += '<div class="modal-content">';
   help_modal += '<div class="help-modal-content">';
@@ -362,13 +431,114 @@ function addHelpModal() {
   help_modal += '</div>';
 
   var help_button = '<div class="help-button">';
-  help_button += '<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Carting Help</button>';
+  help_button += '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#help-modal">Carting Help</button>';
   help_button += '</div>';
 
 
   
   $('body').before(help_button);
   $('body').before(help_modal);
+}
+
+function addCompareModal() {
+  
+  final_str = " חיסכון!"
+  var my_cart_div = '<div class="total-cart">';
+  my_cart_div += "משווה מול ";
+  my_cart_div += '<img src="'+ im +'" width="40" />\n';
+
+  submit_button = $('.wrapper-btnSubmit').first();
+  if (submit_button)
+  {
+      submit_button = submit_button[0];
+      submit_button.classList.add('buy-btn-finish');
+
+      // Select all child elements with class "title-btn"
+      const childElementsWithTitleClass = submit_button.querySelectorAll('.title-btn');
+
+      // Loop through the selected child elements and remove each one
+      childElementsWithTitleClass.forEach((childElement) => {
+        childElement.remove();
+      });
+      
+      console.log("submit button = ", submit_button);
+  }
+
+  var m = '<div id="compare-modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">';
+  m += '<div class="modal-dialog modal-lg" style="width:80%">';
+  m += '<div class="modal-content container mt-5 text-center">';
+  m += '  <h1 class="modal-title text-center">טבלה השוואת סלים</h1>';
+  m += '        <div style="margin:25px;"><table class="table table-bordered table-striped text-center cmp-table" id="cmp-table">';
+  m += '            <!-- Table rows will be dynamically generated here -->';
+  m += '        </table></div>'
+  m += '        <div style="margin:25px;"><div class="btn btn-primary buy-btn" >קנה בשופרסל' + submit_button.outerHTML + '</div>';
+   m += '        <div class="btn btn-primary buy-btn" >קנה ברמי לוי' + submit_button.outerHTML + '</div></div>';
+  m += '</div>';
+  m += '</div>';
+  m += '</div>';
+
+  
+  var compare_button = '<div class="compare-button">';
+  compare_button += '<button type="button" id="cmp-btn" class="btn btn-primary" data-toggle="modal" data-target="#compare-modal">השווה סלים</button>';
+  compare_button += '</div>';
+  $('.wrapper-btnSubmit').html(compare_button);
+  $('body').before(m);
+}
+
+// Function to generate the HTML table
+function generateTable(cartProducts) {
+  rami_logo = chrome.runtime.getURL("rami_logo.png");
+  shufersal_logo = chrome.runtime.getURL("shufersal_logo.png");
+
+  const tableBody = document.getElementById('cmp-table');
+
+  // Clear any existing rows from the table
+  tableBody.innerHTML = '';
+
+  // add logos tr
+
+  const rowhead = document.createElement('tr');
+
+  var cartCell = document.createElement('td');
+  cartCell.innerHTML = '<img src="' + shufersal_logo +'"  height ="50"/>';
+  rowhead.appendChild(cartCell);
+
+  var chosenCell = document.createElement('td');
+  chosenCell.innerHTML = '<img src="' + rami_logo +'"  height ="50"/>';
+  rowhead.appendChild(chosenCell);
+
+  tableBody.appendChild(rowhead);
+  // Create rows for each CartProduct
+  for (const cartProduct of cartProducts) {
+    const row = document.createElement('tr');
+
+    // Create cells for Cart Product
+    const cartCell = document.createElement('td');
+    cartCell.textContent = cartProduct.name + ' ' + cartProduct.price.toFixed(2) + '\r\rש"ח';
+    row.appendChild(cartCell);
+
+    // Create cells for Chosen Product
+    const chosenCell = document.createElement('td');
+    if (cartProduct.chosen) {
+      chosenCell.textContent = cartProduct.chosen.name + ' ' + cartProduct.chosen.price.toFixed(2) + '\r\rש"ח';
+    } else {
+      chosenCell.textContent = 'None';
+    }
+    row.appendChild(chosenCell);
+
+    tableBody.appendChild(row);
+  }
+  const row = document.createElement('tr');
+  const totalPriceProducts = cartProducts.reduce((sum, cartProduct) => sum + cartProduct.price, 0);
+  const totalPriceChosen = cartProducts.reduce((sum, cartProduct) => sum + cartProduct.chosen.price, 0);
+  cartCell = document.createElement('td');
+  cartCell.innerHTML = '<b>' +totalPriceProducts.toFixed(2) + 'ש"ח</b>';
+  row.appendChild(cartCell);
+
+  chosenCell = document.createElement('td');
+  chosenCell.innerHTML = '<b>' +totalPriceChosen.toFixed(2) + 'ש"ח</b>';
+  row.appendChild(chosenCell);
+  tableBody.appendChild(row);
 }
 
 $(document).ready(function() {
@@ -378,6 +548,8 @@ $(document).ready(function() {
 
   $('.btnSubmit').bind('click', submitClick);
   addProductsCart();
+  addCompareModal();
   addHelpModal();
+  
 
 });

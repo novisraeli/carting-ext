@@ -10,19 +10,20 @@
     {
       "css": ["style.css"],
       "matches": ["https://www.shufersal.co.il/*"],
-      "js": ["jquery.min.js", "ext.js"],
+      "exclude_matches": ["https://www.shufersal.co.il/online/he/cart/cartsummary"],
+      "js": ["jquery.min.js", "bootstrap.min.js", "ext.js"],
       "run_at": "document_idle"
     },
     {
       "css": ["style.css"],
       "matches": ["https://www.rami-levy.co.il/*"],
-      "js": ["jquery.min.js","rami-levy.js"],
+      "js": ["jquery.min.js", "bootstrap.min.js", "rami-levy.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["ramilevy.jpg", "help.jpg"],
+      "resources": ["ramilevy.jpg", "help.jpg", "shufersal_logo.png", "rami_logo.png"],
       "matches": ["https://www.shufersal.co.il/*"]
     }
   ]
