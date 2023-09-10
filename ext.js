@@ -98,20 +98,23 @@ class CartProduct extends Product {
       Promise.all([this, getProductByid(this.id), getProductsByName(this.name)])
       .then(([prod, result_by_id, results_by_name]) => {
           console.log("Detected for ", prod.name, " items: ", results_by_name);
-          var repl_by_id = new ReplacmentProduct(0, result_by_id["product_name"], result_by_id["item_price"], prod.amount, prod);
+          var repl_by_id = new ReplacmentProduct(result_by_id["item_code"], result_by_id["product_name"], result_by_id["item_price"], prod.amount, prod);
 
           let replacements = [];
           results_by_name.forEach((d) => {
-            replacements.push(new ReplacmentProduct(0, d["item_name"], d["item_price"], prod.amount, prod));
+            replacements.push(new ReplacmentProduct(d["item_code"], d["item_name"], d["item_price"], prod.amount, prod));
           });
 
-          // Check if an object with the same id exists in the array
-          const hasObjectWithSameId = replacements.some(obj => obj.id === repl_by_id.id);
 
-          // If an object with the same id does not exist, add the new object
-          if (!hasObjectWithSameId) {
-            array.unshift(repl_by_id);
-          }
+			if(result_by_id["item_code"]) {
+			  // Check if an object with the same id exists in the array
+			  const hasObjectWithSameId = replacements.some(obj => obj.id === repl_by_id.id);
+
+			  // If an object with the same id does not exist, add the new object
+			  if (!hasObjectWithSameId) {
+				replacements.unshift(repl_by_id);
+			  }
+			}
 
 
           console.log("Detection for ", prod.name , " Replacements = ", replacements);
@@ -440,6 +443,28 @@ function addHelpModal() {
   $('body').before(help_modal);
 }
 
+function moveToRamiLevi() {
+	console.log("MoveToRamiLevi pressed");
+	const chosenArray = cart_products.map(obj => obj.chosen);
+	console.log("rami levi cart to be:" , chosenArray);
+	//temp
+	chrome.storage.local.clear(function() {
+	  if (chrome.runtime.lastError) {
+		console.error(chrome.runtime.lastError);
+		return;
+	  }
+	  console.log("Local storage cleared successfully.");
+	});
+	for(var i=0; i<chosenArray.length;i++){
+		console.log(chosenArray[i].id)
+		chrome.storage.local.set({ ['storedName_' + i]: chosenArray[i].id });
+	}
+	
+	
+	window.open("https://www.rami-levy.co.il");
+}
+
+
 function addCompareModal() {
   
   final_str = " חיסכון!"
@@ -452,7 +477,6 @@ function addCompareModal() {
   {
       submit_button = submit_button[0];
       submit_button.classList.add('buy-btn-finish');
-
       // Select all child elements with class "title-btn"
       const childElementsWithTitleClass = submit_button.querySelectorAll('.title-btn');
 
@@ -470,9 +494,9 @@ function addCompareModal() {
   m += '  <h1 class="modal-title text-center">טבלה השוואת סלים</h1>';
   m += '        <div style="margin:25px;"><table class="table table-bordered table-striped text-center cmp-table" id="cmp-table">';
   m += '            <!-- Table rows will be dynamically generated here -->';
-  m += '        </table></div>'
+  m += '        </table></div>';
   m += '        <div style="margin:25px;"><div class="btn btn-primary buy-btn" >קנה בשופרסל' + submit_button.outerHTML + '</div>';
-   m += '        <div class="btn btn-primary buy-btn" >קנה ברמי לוי' + submit_button.outerHTML + '</div></div>';
+   m += '        <div class="btn btn-primary buy-btn" onclick="moveToRamiLevi()" id="movebtn" style="background: #42a229;">קנה ברמי לוי</div></div>';
   m += '</div>';
   m += '</div>';
   m += '</div>';
@@ -483,6 +507,8 @@ function addCompareModal() {
   compare_button += '</div>';
   $('.wrapper-btnSubmit').html(compare_button);
   $('body').before(m);
+    document.getElementById("movebtn").addEventListener('click',function() {moveToRamiLevi();});
+
 }
 
 // Function to generate the HTML table
